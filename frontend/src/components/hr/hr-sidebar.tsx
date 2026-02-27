@@ -113,7 +113,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
               <Settings size={22} className="relative z-10" />
             </div>
             <span className={`font-bold text-lg tracking-tight whitespace-nowrap transition-opacity duration-300 ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-              Settings
+               Settings
             </span>
           </Link>
         </div>
