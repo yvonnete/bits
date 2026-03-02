@@ -234,47 +234,48 @@ async function main() {
         },
     ]
 
+    // Track zkIds used in this seed run to avoid collisions
+    const usedZkIds = new Set<number>()
+    // Pre-load all existing zkIds from the DB
+    const existingZkIds = await prisma.employee.findMany({ select: { zkId: true } })
+    existingZkIds.forEach(e => { if (e.zkId) usedZkIds.add(e.zkId) })
+    usedZkIds.add(1) // Always reserve UID 1 for device SUPER ADMIN
+
     for (const u of employees) {
-        const existing = await prisma.employee.findUnique({ where: { email: u.email } })
-        let empId = existing?.id
-        let empZkId = existing?.zkId
-
-        if (!existing) {
-            // Determine safe zkId — never use 1 (device SUPER ADMIN)
-            const zkCheck = await prisma.employee.findUnique({ where: { zkId: u.preferredZkId } })
-            let finalZkId = u.preferredZkId
-            if (zkCheck) {
-                const max = await prisma.employee.findFirst({ orderBy: { zkId: 'desc' } })
-                finalZkId = Math.max((max?.zkId || 1) + 1, 2) // Never assign 1
-            }
-
-            const newEmp = await prisma.employee.create({
-                data: {
-                    firstName: u.firstName,
-                    lastName: u.lastName,
-                    email: u.email,
-                    password: passwordHash,
-                    role: u.role,
-                    department: u.department,
-                    departmentId: deptMap[u.department] ?? null,
-                    position: u.position,
-                    branch: u.branch,
-                    branchId: branchMap[u.branch] ?? null,
-                    shiftId: shiftMap[u.shift] ?? null,
-                    contactNumber: u.contactNumber,
-                    employeeNumber: u.employeeNumber,
-                    zkId: finalZkId,
-                    employmentStatus: 'ACTIVE',
-                    hireDate: new Date('2024-01-15'),
-                    updatedAt: new Date(),
-                }
-            })
-            empId = newEmp.id
-            empZkId = newEmp.zkId
-            console.log(`👤 Created: ${u.firstName} ${u.lastName} (${u.role}, zkId: ${finalZkId})`)
-        } else {
-            console.log(`👤 Already exists: ${u.email}`)
+        // Find a safe zkId that doesn't collide
+        let finalZkId = u.preferredZkId
+        while (usedZkIds.has(finalZkId)) {
+            finalZkId++
         }
+        usedZkIds.add(finalZkId) // Reserve it for the rest of this run
+
+        const empData = {
+            firstName: u.firstName,
+            lastName: u.lastName,
+            password: passwordHash,
+            role: u.role,
+            department: u.department,
+            departmentId: deptMap[u.department] ?? null,
+            position: u.position,
+            branch: u.branch,
+            branchId: branchMap[u.branch] ?? null,
+            shiftId: shiftMap[u.shift] ?? null,
+            contactNumber: u.contactNumber,
+            employeeNumber: u.employeeNumber,
+            zkId: finalZkId,
+            employmentStatus: 'ACTIVE' as const,
+            hireDate: new Date('2024-01-15'),
+            updatedAt: new Date(),
+        }
+
+        const emp = await prisma.employee.upsert({
+            where: { email: u.email },
+            update: empData,
+            create: { ...empData, email: u.email },
+        })
+        const empId = emp.id
+        const empZkId = emp.zkId
+        console.log(`👤 Upserted: ${u.firstName} ${u.lastName} (${u.role}, zkId: ${finalZkId})`)
 
         // ──────────────────────────────────────────────
         // 6. Attendance records (last 7 weekdays)
