@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { getAllBranches, createBranch, deleteBranch } from '../controllers/branch.controller';
+import { getBranches, createBranch, deleteBranch } from '../controllers/branch.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { adminOrHR } from '../middleware/role.middleware';
 
 const router = Router();
 
 // GET all branches (authenticated)
-router.get('/', authenticate, getAllBranches);
+router.get('/', authenticate, getBranches);
 
 // POST create branch (admin/HR only)
 router.post('/', authenticate, adminOrHR, createBranch);

@@ -268,11 +268,27 @@ async function main() {
             updatedAt: new Date(),
         }
 
-        const emp = await prisma.employee.upsert({
-            where: { email: u.email },
-            update: empData,
-            create: { ...empData, email: u.email },
+        // Find existing employee by email OR employeeNumber to avoid unique constraint conflicts
+        let emp = await prisma.employee.findFirst({
+            where: {
+                OR: [
+                    { email: u.email },
+                    { employeeNumber: u.employeeNumber },
+                ]
+            }
         })
+
+        if (emp) {
+            emp = await prisma.employee.update({
+                where: { id: emp.id },
+                data: { ...empData, email: u.email },
+            })
+        } else {
+            emp = await prisma.employee.create({
+                data: { ...empData, email: u.email },
+            })
+        }
+
         const empId = emp.id
         const empZkId = emp.zkId
         console.log(`👤 Upserted: ${u.firstName} ${u.lastName} (${u.role}, zkId: ${finalZkId})`)

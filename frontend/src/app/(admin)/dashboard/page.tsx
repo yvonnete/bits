@@ -129,7 +129,7 @@ export default function Dashboard() {
           const tb = new Date(a.checkOutTime || a.checkInTime).getTime()
           return ta - tb
         })
-        .slice(0, 20)
+        .slice(0, 5)
 
       setActivity(sorted.map((r: any, i: number) => {
         const e    = r.employee || emps.find((x: any) => x.id === r.employeeId) || {}
@@ -178,7 +178,7 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Total Employees', value: empStats.total,  sub: `${empStats.active} active`,     icon: Users,        color: '#6366f1', bg: '#6366f115' },
-    { label: 'Present Today',   value: attStats.present, sub: `${rate}% rate`,                icon: Clock,        color: '#22c55e', bg: '#22c55e15' },
+    { label: 'On time',   value: attStats.present, sub: `${rate}% rate`,                icon: Clock,        color: '#22c55e', bg: '#22c55e15' },
     { label: 'Late',            value: attStats.late,   sub: `+${attStats.overtime}h overtime`,icon: TrendingUp,   color: GOLD,      bg: `${GOLD}20`  },
     { label: 'Absent',          value: attStats.absent, sub: `${attStats.undertime}h undertime`,icon: AlertCircle, color: RED,       bg: `${RED}15`   },
   ]
