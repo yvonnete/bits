@@ -16,7 +16,9 @@ type Employee = {
   id: number
   firstName: string
   lastName: string
+  role?: string
   department: string | null
+  Department?: { name: string } | null
   branch: string | null
   position: string | null
   employmentStatus: string
@@ -123,7 +125,7 @@ export default function ReportsPage() {
 
       // Build report rows
       const rows: ReportRow[] = employees
-        .filter((emp: Employee) => emp.employmentStatus === 'ACTIVE')
+        .filter((emp: Employee) => emp.employmentStatus === 'ACTIVE' && (!emp.role || emp.role === 'USER'))
         .map((emp: Employee) => {
           const empRecords = attendanceByEmployee.get(emp.id) || [];
 
@@ -158,7 +160,7 @@ export default function ReportsPage() {
           return {
             id: emp.id,
             name: `${emp.firstName} ${emp.lastName}`,
-            department: emp.department || '-',
+            department: emp.Department?.name || emp.department || '-',
             branch: emp.branch || '-',
             totalDays: totalWorkingDays,
             present,
