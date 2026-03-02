@@ -1,47 +1,17 @@
-import express from 'express';
-import { getBranches, createBranch, deleteBranch } from '../controllers/branch.controller';
+import { Router } from 'express';
+import { getAllBranches, createBranch, deleteBranch } from '../controllers/branch.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { adminOrHR } from '../middleware/role.middleware';
 
-const router = express.Router();
+const router = Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticate);
+// GET all branches (authenticated)
+router.get('/', authenticate, getAllBranches);
 
-/**
- * @swagger
- * /api/branches:
- *   get:
- *     summary: Retrieve a list of branches
- *     tags: [Branches]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: A list of branches.
- */
-router.get('/', getBranches);
+// POST create branch (admin/HR only)
+router.post('/', authenticate, adminOrHR, createBranch);
 
-/**
- * @swagger
- * /api/branches:
- *   post:
- *     summary: Create a new branch
- *     tags: [Branches]
- *     security:
- *       - bearerAuth: []
- */
-router.post('/', adminOrHR, createBranch);
-
-/**
- * @swagger
- * /api/branches/{id}:
- *   delete:
- *     summary: Delete a branch
- *     tags: [Branches]
- *     security:
- *       - bearerAuth: []
- */
-router.delete('/:id', adminOrHR, deleteBranch);
+// DELETE branch (admin/HR only)
+router.delete('/:id', authenticate, adminOrHR, deleteBranch);
 
 export default router;

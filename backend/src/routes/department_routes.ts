@@ -1,47 +1,17 @@
-import express from 'express';
+import { Router } from 'express';
 import { getAllDepartments, createDepartment, deleteDepartment } from '../controllers/department.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { adminOrHR } from '../middleware/role.middleware';
 
-const router = express.Router();
+const router = Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticate);
+// GET all departments (authenticated)
+router.get('/', authenticate, getAllDepartments);
 
-/**
- * @swagger
- * /api/departments:
- *   get:
- *     summary: Retrieve a list of departments
- *     tags: [Departments]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: A list of departments.
- */
-router.get('/', getAllDepartments);
+// POST create department (admin/HR only)
+router.post('/', authenticate, adminOrHR, createDepartment);
 
-/**
- * @swagger
- * /api/departments:
- *   post:
- *     summary: Create a new department
- *     tags: [Departments]
- *     security:
- *       - bearerAuth: []
- */
-router.post('/', adminOrHR, createDepartment);
-
-/**
- * @swagger
- * /api/departments/{id}:
- *   delete:
- *     summary: Delete a department
- *     tags: [Departments]
- *     security:
- *       - bearerAuth: []
- */
-router.delete('/:id', adminOrHR, deleteDepartment);
+// DELETE department (admin/HR only)
+router.delete('/:id', authenticate, adminOrHR, deleteDepartment);
 
 export default router;

@@ -83,7 +83,8 @@ process.on('unhandledRejection', (reason, promise) => {
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  process.exit(1);
+  // Don't exit — allow the server to keep running
+  // ZKTeco timeouts can trigger this and shouldn't kill the server
 });
 
 app.listen(port, () => {
